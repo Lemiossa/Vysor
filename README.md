@@ -2,6 +2,10 @@
 
 The Vysor is a simple audio visualizer written in C
 
+## Requeriments
+- pulseaudio-dev(libpulse-simple)
+- ncurses-dev
+
 ## License
 
 Copyright 2026 Matheus Leme da Silva
