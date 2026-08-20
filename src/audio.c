@@ -12,6 +12,7 @@
 
 int16_t buffer[FRAMES];
 float samples[FRAMES];
+pthread_mutex_t samples_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_t audio_id;
 static int running = 0;
 
@@ -25,8 +26,11 @@ void *audio_thread(void *arg)
     while (running != 0)
     {
         pa_simple_read(s, buffer, sizeof(buffer), NULL);
+
+        pthread_mutex_lock(&samples_mutex);
         for (int i = 0; i < FRAMES; i++)
             samples[i] = ((float)buffer[i] / 32768.0);
+        pthread_mutex_unlock(&samples_mutex);
     }
 
     return s;

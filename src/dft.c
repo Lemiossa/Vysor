@@ -48,13 +48,13 @@ bool dft_execute(DFTContext *ctx,
     if (!ctx || !x || !X) return false;
 
     int N = ctx->N;
+    const float complex *w_ptr = ctx->weights;
     for (int k = 0; k < N; k++)
     {
         float complex sum = 0.0f;
-        int row_offset = k * N;
 
         for (int n = 0; n < N; n++)
-            sum += x[n] * ctx->weights[row_offset + n];
+            sum += x[n] * (*w_ptr++);
 
         X[k] = sum;
     }
