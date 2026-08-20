@@ -111,34 +111,49 @@ int main(void)
     getmaxyx(stdscr, height, width);
     int num_bars = width; 
 
+    float smooth_bars[FRAMES / 2] = {0};
+
     while (running)
     {
         erase();
 
+        float current_m[FRAMES / 2];
+        float max_mag = 1.0f;
 
         pthread_mutex_lock(&m_shared_mutex);
+        memcpy(current_m, m_shared, sizeof(float) * (FRAMES / 2));
+        max_mag = max_mag_shared;
+        pthread_mutex_unlock(&m_shared_mutex);
+
         for (int i = 0; i < num_bars; i++) 
         {
             int idx = (i * (FRAMES / 2)) / num_bars;
             
-            float val = m_shared[idx];
+            float target = 0.0f;
+            if (max_mag > 0.0f)
+                target = current_m[idx] / max_mag;
 
-            int bar_height = 0;
-            if (max_mag_shared > 0.0f) 
-                bar_height = (int)((val / max_mag_shared) * height);
+            float alpha_up = 0.4f;
+            float alpha_down = 0.12f;
+
+            if (target > smooth_bars[i])
+                smooth_bars[i] += alpha_up * (target - smooth_bars[i]);
+            else
+                smooth_bars[i] += alpha_down * (target - smooth_bars[i]);
+
+            int bar_height = (int)(smooth_bars[i] * height);
 
             for (int y = 0; y < bar_height; y++)
-                mvaddch(height - 1 - y, i, ' ' | COLOR_PAIR(1));
+                mvaddch(height - 1 - y, i, ' ' | COLOR_PAIR(1) | A_REVERSE);
         }
-        pthread_mutex_unlock(&m_shared_mutex);
-        
+
         refresh();
 
         int ch = getch();
         if (ch == 'q')
             running = 0;
 
-        usleep(16000);
+        usleep(16000); 
     }
 
     endwin();
