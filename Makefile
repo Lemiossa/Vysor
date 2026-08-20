@@ -1,11 +1,11 @@
 # Makefile
 
-VERSION := 0.2.0
+VERSION := 0.3.0
 TARGET := $(CURDIR)/vysor
 
 CC ?= gcc
 CPPFLAGS := -DVERSION=\"$(VERSION)\" -I$(CURDIR)/include
-CFLAGS := -O2 -g -Wall -Wextra
+CFLAGS := -O3 -march=native -ffast-math -g -Wall -Wextra
 LDFLAGS := 
 LDLIBS := -lncurses -lpulse-simple -lpulse -lpthread
 

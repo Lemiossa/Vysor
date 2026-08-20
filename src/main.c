@@ -12,10 +12,18 @@ int running = 1;
 
 int main(void)
 {
-    if (audio_init())
+    printf("Initializing...\r\n");
+
+    DFTContext *dft_ctx = dft_create(FRAMES);
+    if (!dft_ctx)
+    {
+        fprintf(stderr, "Failed to create DFT context\r\n");
+        return 1;
+    }
+
+    if (audio_init(NULL))
         return 1;
 
-    printf("Initializing...\r\n");
     initscr();
     noecho();
     nodelay(stdscr, TRUE);
@@ -28,7 +36,7 @@ int main(void)
     {
         float complex X[FRAMES];
 
-        dft(samples, X, FRAMES);
+        dft_execute(dft_ctx, samples, X);
 
         float m[FRAMES/2];
         float max_mag = 0.0;
@@ -44,7 +52,7 @@ int main(void)
 
         if (samples_per_bar < 1) samples_per_bar = 1;
 
-        clear();
+        erase();
 
         for (int i = 0; i < num_bars; i++) 
         {
@@ -74,5 +82,7 @@ int main(void)
 
     endwin();
     audio_destroy();
+    dft_destroy(dft_ctx);
+
     return 0;
 }

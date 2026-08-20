@@ -3,7 +3,10 @@
 #include <globals.h>
 
 extern float samples[FRAMES];
-int audio_init(void);
+// Initializes vysor audio system
+// Start the audio read thread
+int audio_init(char *device);
+// Destroys de audio
 void audio_destroy(void);
 
 #endif // AUDIO_H
