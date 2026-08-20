@@ -2,54 +2,77 @@
  * main.c
  * Created by Matheus Leme da Silva
  * */
+#include <globals.h>
 #include <stdio.h>
-#include <complex.h>
+#include <dft.h>
+#include <audio.h>
+#include <curses.h>
 
-#ifndef PI
-#define PI 3.1415926535
-#endif // PI
-
-void dft(const double *x, double complex *X, int N)
-{   
-    /*
-     *        N-1
-     * X[k] = SUM ( x[n] * e^(-j * 2 * pi * k * n / N) )
-     *        n=0
-     * */
-    for (int k = 0; k < N; k++)
-    {
-        X[k] = 0.0;
-        for (int n = 0; n < N; n++)
-        {
-            double angle = (2.0 * PI * k * n) / N;
-            X[k] += x[n] * cexp(-angle * I);
-        }
-    }
-}
+int running = 1;
 
 int main(void)
 {
-    double samples[8] = {
-         1.0000,
-         0.7071,
-         0.0000,
-        -0.7071,
-        -1.0000,
-        -0.7071,
-         0.0000,
-         0.7071
-    };
+    if (audio_init())
+        return 1;
 
-    double complex buffer[8];
-    
-    dft(samples, buffer, sizeof(samples) / sizeof(double));
-    
-    for (int k = 0; k < 8; k++)
+    printf("Initializing...\r\n");
+    initscr();
+    noecho();
+    nodelay(stdscr, TRUE);
+    curs_set(0);
+
+    int width, height;
+    getmaxyx(stdscr, height, width);
+
+    while (running)
     {
-        double mag = cabs(buffer[k]);
-        printf("%lf\r\n", mag);
+        float complex X[FRAMES];
+
+        dft(samples, X, FRAMES);
+
+        float m[FRAMES/2];
+        float max_mag = 0.0;
+        for (int k = 0; k < FRAMES/2; k++)
+        {
+            m[k] = cabs(X[k]);
+            if (m[k] > max_mag)
+                max_mag = m[k];
+        }
+
+        int num_bars = width; 
+        int samples_per_bar = (FRAMES / 2) / num_bars;
+
+        if (samples_per_bar < 1) samples_per_bar = 1;
+
+        clear();
+
+        for (int i = 0; i < num_bars; i++) 
+        {
+            float sum = 0.0;
+            for (int j = 0; j < samples_per_bar; j++) 
+            {
+                int idx = i * samples_per_bar + j;
+                if (idx < FRAMES / 2)
+                    sum += m[idx];
+            }
+            float avg = sum / samples_per_bar;
+
+            int bar_height = 0;
+            if (max_mag > 0) 
+                bar_height = (int)((avg / max_mag) * height);
+
+            for (int y = 0; y < bar_height; y++)
+                mvaddch(height - 1 - y, i, '-');
+        }
+        
+        refresh();
+
+        int ch = getch();
+        if (ch == 'q')
+            running = 0;
     }
 
-    printf("Hello World\r\n");
+    endwin();
+    audio_destroy();
     return 0;
 }
