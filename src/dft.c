@@ -21,7 +21,7 @@ DFTContext *dft_create(int N)
     if (!ctx) return NULL;
     ctx->N = N;
 
-    ctx->weights = (float complex *)malloc(sizeof(float complex *) * N * N);
+    ctx->weights = (float complex *)malloc(sizeof(float complex) * N * N);
     if(!ctx->weights)
     {
         free(ctx);
