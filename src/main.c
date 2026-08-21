@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 #include <unistd.h>
 #include <fft.h>
 #include <audio.h>
@@ -50,6 +51,21 @@ void *fft_worker(void *arg)
     }
 
     return NULL;
+}
+
+float get_log_height(float target)
+{
+    float min_db = -60.0f;
+
+    if (target < 0.001f) 
+        return 0.0f;
+
+    float db = 20.0f * log10f(target);
+
+    if (db < min_db) 
+        return 0.0f;
+
+    return (db - min_db) / (-min_db);
 }
 
 int main(void)
@@ -98,17 +114,19 @@ int main(void)
         {
             int idx = (i * (FRAMES / 2)) / num_bars;
             
-            float target = 0.0f;
+            float linear_target = 0.0f;
             if (max_mag > 0.0f)
-                target = current_m[idx] / max_mag;
+                linear_target = current_m[idx] / max_mag;
+
+            float log_target = get_log_height(linear_target);
 
             float alpha_up = 0.4f;
             float alpha_down = 0.12f;
 
-            if (target > smooth_bars[i])
-                smooth_bars[i] += alpha_up * (target - smooth_bars[i]);
+            if (log_target > smooth_bars[i])
+                smooth_bars[i] += alpha_up * (log_target - smooth_bars[i]);
             else
-                smooth_bars[i] += alpha_down * (target - smooth_bars[i]);
+                smooth_bars[i] += alpha_down * (log_target - smooth_bars[i]);
 
             int bar_height = (int)(smooth_bars[i] * height);
 

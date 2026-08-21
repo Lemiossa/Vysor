@@ -1,7 +1,7 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
-#define FRAMES 256
+#define FRAMES 1024
 #define DEFAULT_MONITOR "@DEFAULT_MONITOR@"
 
 #endif // GLOBALS_H
