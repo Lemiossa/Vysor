@@ -45,13 +45,36 @@ int audio_init(char *device)
         .rate = 44100,
         .channels = 1
     };
+    pa_buffer_attr attr;
+    attr.maxlength = (uint32_t)-1;
+    attr.tlength   = (uint32_t)-1;
+    attr.prebuf    = (uint32_t)-1;
+    attr.minreq    = (uint32_t)-1;
+    attr.fragsize  = sizeof(int16_t) * FRAMES;
+    int error;
+    pa_simple *s = pa_simple_new(
+        NULL, 
+        "Vysor", 
+        PA_STREAM_RECORD, 
+        device != NULL ? device : DEFAULT_MONITOR, 
+        "monitor", 
+        &ss, 
+        NULL, 
+        &attr, 
+        &error
+    );
 
-    pa_simple *s = pa_simple_new(NULL, "Vysor", PA_STREAM_RECORD, device != NULL ? device : DEFAULT_MONITOR, "monitor", &ss, NULL, NULL, NULL);
-    
+    if (!s)
+    {
+        fprintf(stderr, "pa_simple_new() failed: %s\n", pa_strerror(error));
+        return 1;
+    }
+
     running = 1;
     if (pthread_create(&audio_id, NULL, audio_thread, (void *)s))
     {
         fprintf(stderr, "Failed to initialize audio thread\r\n");
+        pa_simple_free(s);
         return 1;
     }
 

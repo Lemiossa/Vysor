@@ -1,6 +1,6 @@
 # Makefile
 
-VERSION := 0.3.0
+VERSION := 0.4.0
 TARGET := $(CURDIR)/vysor
 
 CC ?= gcc
@@ -13,7 +13,7 @@ SOURCEDIR := $(CURDIR)/src
 OBJDIR := $(CURDIR)/obj
 
 SOURCE := $(SOURCEDIR)/main.c \
-		  $(SOURCEDIR)/dft.c \
+		  $(SOURCEDIR)/fft.c \
 		  $(SOURCEDIR)/audio.c
 OBJ := $(patsubst $(SOURCEDIR)/%.c,$(OBJDIR)/%.o,$(SOURCE))
 DEP := $(patsubst $(SOURCEDIR)/%.c,$(OBJDIR)/%.d,$(SOURCE))
